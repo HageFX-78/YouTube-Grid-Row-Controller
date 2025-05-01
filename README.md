@@ -20,6 +20,7 @@ Install a userscript manager such as:
 ### 🔹 Step 2: Turn on Developer Mode (Important!)
 
 You need to go to your extensions page and turn on Developer mode (on the top-right usually with chromium browsers)
+
 ![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/devmode.png)
 
 ---
@@ -48,7 +49,15 @@ Youtube のホームページのグリッドに、列のアイテム表示数を
 -   [Tampermonkey](https://www.tampermonkey.net/)（Chrome 拡張機能）
 -   [ViolentMonkey](https://violentmonkey.github.io/)（代替オプション）
 
-### 🔹 ステップ 2: スクリプトをインストール
+### 🔹 ステップ 2: デベロッパーモードをオンする (重要!)
+
+拡張機能ページに行き、開発者モードをオンにする必要があります。(右上にあるはず)
+
+![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/devmode.png)
+
+---
+
+### 🔹 ステップ 3: スクリプトをインストール
 
 以下のリンクをクリックしてインストールしてください。  
 ➡ **[YTGridRowControl.user.js](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js)**
