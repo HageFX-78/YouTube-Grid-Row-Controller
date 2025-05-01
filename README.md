@@ -17,7 +17,14 @@ Install a userscript manager such as:
 -   [Tampermonkey](https://www.tampermonkey.net/) (Chrome Extension)
 -   [ViolentMonkey](https://violentmonkey.github.io/) (Alternative option)
 
-### 🔹 Step 2: Install the Script
+### 🔹 Step 2: Turn on Developer Mode (Important!)
+
+You need to go to your extensions page and turn on Developer mode (on the top-right usually with chromium browsers)
+![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/devmode.png)
+
+---
+
+### 🔹 Step 3: Install the Script
 
 Click the link below to install:  
 ➡ **[YTGridRowControl.user.js](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js)**
