@@ -23,8 +23,6 @@ You need to go to your extensions page and turn on Developer mode (on the top-ri
 
 ![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/devmode.png)
 
----
-
 ### 🔹 Step 3: Install the Script
 
 Click the link below to install:  
