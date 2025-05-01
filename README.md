@@ -1,14 +1,16 @@
 # Youtube Grid Row Controller
 
----
+## Preview
 
-## 📝 About
+![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/demo.gif = 384x216)
+
+## About
 
 Adds simple buttons to control items per row on Youtube's homepage grid, default is 4
 
 ---
 
-## 📥 Installation
+## Installation
 
 ### 🔹 Step 1: Install a Userscript Manager
 
@@ -28,13 +30,13 @@ Click the link below to install:
 
 ## 🇯🇵 Youtube グリッド調整
 
-### 📝 概要
+### 概要
 
 Youtube のホームページのグリッドに、列のアイテム表示数をコントロールできるシンプルなボタンを追加する。
 
 ---
 
-## 📥 インストール方法
+## インストール方法
 
 ### 🔹 ステップ 1: ユーザースクリプトマネージャーをインストール
 
