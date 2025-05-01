@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name         Youtube Homepage Control Item Per Row
+// @name         YouTube Grid Row Controller
 // @namespace    https://github.com/HageFX-78
 // @version      0.1
-// @description  Add simple buttons to control items per row on Youtube's homepage, default is 4
+// @description  Add simple buttons to control items per row on Youtube's homepage grid, default is 4
 // @author       HageFX78
 // @license      MIT
 // @match        *://www.youtube.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
+// @downloadURL  https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js
+// @updateURL    https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // ==/UserScript==
