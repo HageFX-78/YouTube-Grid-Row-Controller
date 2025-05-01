@@ -30,8 +30,6 @@ You need to go to your extensions page and turn on Developer mode (on the top-ri
 Click the link below to install:  
 ➡ **[YTGridRowControl.user.js](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js)**
 
----
-
 <br>
 
 ## 🇯🇵 Youtube グリッド調整
@@ -54,8 +52,6 @@ Youtube のホームページのグリッドに、列のアイテム表示数を
 拡張機能ページに行き、開発者モードをオンにする必要があります。(右上にあるはず)
 
 ![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/devmode.png)
-
----
 
 ### 🔹 ステップ 3: スクリプトをインストール
 
