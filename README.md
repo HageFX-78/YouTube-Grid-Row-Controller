@@ -2,7 +2,7 @@
 
 ## Preview
 
-![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/demo.gif=384x216)
+![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/demo.gif)
 
 ## About
 
