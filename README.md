@@ -4,9 +4,16 @@
 
 ![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/demo.gif)
 
+## Changelog
+
+-   v0.2
+    -   Added support for News and Shorts
+    -   Code restructure
+    -   Control buttons for each section (5 for News, 6 for Shorts by default)
+
 ## About
 
-Adds simple buttons to control items per row on Youtube's homepage grid, default is 4
+Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 
 ## Installation
 
