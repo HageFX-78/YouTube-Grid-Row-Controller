@@ -1,5 +1,3 @@
-# Youtube Grid Row Controller
-
 ## Preview
 
 ![demo](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/blob/main/assets/demo.gif)
@@ -13,6 +11,8 @@
 ## About
 
 Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
+
+You can also find it on GreasyFork [click me](https://greasyfork.org/en/scripts/534651-youtube-grid-row-controller). Do support :D
 
 ## Installation
 
