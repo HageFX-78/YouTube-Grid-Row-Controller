@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
 // @namespace    https://github.com/HageFX-78
-// @version      0.2
+// @version      0.3
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
 // @license      MIT
@@ -145,16 +145,19 @@
 		saveCounts();
 	}
 
-	function waitForElement(selector) {
+	function waitForElement(baseQuery, selector) {
 		return new Promise((resolve) => {
 			const observer = new MutationObserver(() => {
-				const el = document.querySelector(selector);
+				const el = baseQuery.querySelector(selector);
 				if (el) {
 					observer.disconnect();
 					resolve(el);
 				}
 			});
-			observer.observe(document.body, { childList: true, subtree: true });
+			observer.observe(baseQuery, {
+				childList: true,
+				subtree: true,
+			});
 		});
 	}
 
@@ -210,22 +213,54 @@
 		if (!insertBefore) controlDiv.classList.add("justify-left-custom");
 	}
 
+	function init(queryStartLocation) {
+		applyCounts();
+
+		if (hideControls) {
+			return;
+		}
+
+		if (embedInChips) {
+			waitForElement(queryStartLocation, "#chips-wrapper").then((el) =>
+				createControlDiv(el, "content")
+			);
+		} else {
+			waitForElement(
+				queryStartLocation,
+				"#contents.ytd-rich-grid-renderer"
+			).then((el) => createControlDiv(el, "content", true));
+		}
+
+		// Start watching for newly loaded sections
+		waitForElement(
+			queryStartLocation,
+			"#contents.ytd-rich-grid-renderer"
+		).then(watchMainContent);
+
+		// Cleanup after init
+		window.removeEventListener(
+			"yt-navigate-finish",
+			handlePageContentChanged
+		);
+	}
+
+	// Workaround when reloaded on creator's home page and going back to main page will hide the buttons
+	let firstLoad = true;
+	function handlePageContentChanged() {
+		if (location.href.endsWith("youtube.com/")) {
+			let browseElements = document.querySelectorAll("ytd-browse");
+
+			if (firstLoad) {
+				init(browseElements[0]);
+			} else {
+				// If reloaded on creator's home page, second ytd-browse will be the main page
+				init(browseElements[1]);
+			}
+		}
+		firstLoad = false;
+	}
+
 	// ----------------------------------- Main Execution -----------------------------------
-	applyCounts();
 
-	if (hideControls) {
-		return;
-	}
-
-	if (embedInChips) {
-		waitForElement("#chips-wrapper").then((el) =>
-			createControlDiv(el, "content")
-		);
-	} else {
-		waitForElement("#contents.ytd-rich-grid-renderer").then((el) =>
-			createControlDiv(el, "content", true)
-		);
-	}
-
-	waitForElement("#contents.ytd-rich-grid-renderer").then(watchMainContent);
+	window.addEventListener("yt-navigate-finish", handlePageContentChanged);
 })();
