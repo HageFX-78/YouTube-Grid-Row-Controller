@@ -6,10 +6,9 @@
 
 ## Changelog
 
--   v0.2
-    -   Added support for News and Shorts
-    -   Code restructure
-    -   Control buttons for each section (5 for News, 6 for Shorts by default)
+-   v0.3 - Fixed bug where reloading in creator page and returning to home will hide the buttons [ [01e3022
+    ](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/commit/01e3022082944e5b8f4d21befee94f936a89cc56) ]
+-   v0.2 - Added support for News and Shorts [ https://github.com/HageFX-78/YouTube-Grid-Row-Controller/commit/185c9dd5e0d965aa3819e2d6d704c0ec45a8eda6 ]
 
 ## About
 
