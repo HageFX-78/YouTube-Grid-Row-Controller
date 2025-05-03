@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
 // @namespace    https://github.com/HageFX-78
-// @version      0.3
+// @version      0.4
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
 // @license      MIT
@@ -14,41 +14,41 @@
 // ==/UserScript==
 
 (function () {
-	"use strict";
+    'use strict';
 
-	// Configurable options
-	const embedInChips = true; // Only applies to the one that is attached to the categories bar, set false if you have another script that removes the bar
-	const hideControls = false; // set true to hide UI controls, it will use the default values instead
+    // Configurable options
+    const embedInChips = true; // Only applies to the one that is attached to the categories bar, set false if you have another script that removes the bar
+    const hideControls = false; // set true to hide UI controls, it will use the default values instead
 
-	const transparentButtons = false; // set true to make the buttons transparent and less intrusive, only applies if hideControls is false
+    const transparentButtons = false; // set true to make the buttons transparent and less intrusive, only applies if hideControls is false
 
-	const defaultCounts = {
-		// Default values mainly used when if you want to hide the buttons, change the values to your liking
-		content: 4,
-		news: 5,
-		shorts: 6,
-	};
+    const defaultSettingValue = {
+        // Default values mainly used when if you want to hide the buttons, change the values to your liking
+        content: 4,
+        news: 5,
+        shorts: 6,
+    };
 
-	let currentCounts = {
-		content: GM_getValue("itemPerRow", defaultCounts.content),
-		news: GM_getValue("newsPerRow", defaultCounts.news),
-		shorts: GM_getValue("shortsPerRow", defaultCounts.shorts),
-	};
+    let currentSettingValues = {
+        content: GM_getValue('itemPerRow', defaultSettingValue.content),
+        news: GM_getValue('newsPerRow', defaultSettingValue.news),
+        shorts: GM_getValue('shortsPerRow', defaultSettingValue.shorts),
+    };
 
-	// Styles
-	const style = (css) => {
-		const el = document.createElement("style");
-		el.textContent = css;
-		document.head.appendChild(el);
-		return el;
-	};
+    // Styles
+    const style = (css) => {
+        const el = document.createElement('style');
+        el.textContent = css;
+        document.head.appendChild(el);
+        return el;
+    };
 
-	style(`
+    style(`
 		${
-			hideControls
-				? ""
-				: "#right-arrow {right: 10% !important;} #chips-wrapper {justify-content: left !important;}#chips-content{width: 90% !important;}"
-		}
+            hideControls
+                ? ''
+                : '#right-arrow {right: 10% !important;} #chips-wrapper {justify-content: left !important;}#chips-content{width: 90% !important;}'
+        }
 
 		.justify-left-custom {
 			justify-content: left !important;
@@ -83,18 +83,14 @@
             gap: 10px;
             box-sizing: border-box;
             user-select: none;
-			${embedInChips ? "" : "width: 100%;"};
+			${embedInChips ? '' : 'width: 100%;'};
         }
 
         .itemPerRowControl button {
 
             border: none;
-            color: white;
-            background-color:${
-				transparentButtons
-					? "transparent"
-					: "var(--yt-spec-badge-chip-background)"
-			};
+            color: var(--yt-spec-text-primary);
+            background-color:${transparentButtons ? 'transparent' : 'var(--yt-spec-badge-chip-background)'};
             font-size: 24px;
             
             text-align: center;
@@ -112,155 +108,126 @@
         }
 	`);
 
-	const dynamicStyle = style("");
+    const dynamicStyle = style('');
 
-	function applyCounts() {
-		dynamicStyle.textContent = `
+    function updatePageLayout() {
+        dynamicStyle.textContent = `
 			ytd-rich-grid-renderer {
-				--ytd-rich-grid-items-per-row: ${
-					hideControls ? defaultCounts.content : currentCounts.content
-				} !important;
+				--ytd-rich-grid-items-per-row: ${hideControls ? defaultSettingValue.content : currentSettingValues.content} !important;
 			}
 			ytd-rich-shelf-renderer {
-				--ytd-rich-grid-items-per-row: ${
-					hideControls ? defaultCounts.news : currentCounts.news
-				} !important;
+				--ytd-rich-grid-items-per-row: ${hideControls ? defaultSettingValue.news : currentSettingValues.news} !important;
 			}
 			ytd-rich-shelf-renderer[is-shorts] {
-				--ytd-rich-grid-slim-items-per-row: ${
-					hideControls ? defaultCounts.shorts : currentCounts.shorts
-				} !important;
+				--ytd-rich-grid-slim-items-per-row: ${hideControls ? defaultSettingValue.shorts : currentSettingValues.shorts} !important;
 			}
 		`;
-	}
+    }
 
-	function saveCounts() {
-		GM_setValue("itemPerRow", currentCounts.content);
-		GM_setValue("newsPerRow", currentCounts.news);
-		GM_setValue("shortsPerRow", currentCounts.shorts);
-	}
+    function saveValues() {
+        GM_setValue('itemPerRow', currentSettingValues.content);
+        GM_setValue('newsPerRow', currentSettingValues.news);
+        GM_setValue('shortsPerRow', currentSettingValues.shorts);
+    }
 
-	function updateAndSave() {
-		applyCounts();
-		saveCounts();
-	}
+    function updateAndSave() {
+        updatePageLayout();
+        saveValues();
+    }
 
-	function waitForElement(baseQuery, selector) {
-		return new Promise((resolve) => {
-			const observer = new MutationObserver(() => {
-				const el = baseQuery.querySelector(selector);
-				if (el) {
-					observer.disconnect();
-					resolve(el);
-				}
-			});
-			observer.observe(baseQuery, {
-				childList: true,
-				subtree: true,
-			});
-		});
-	}
+    function waitForElement(baseQuery, selector) {
+        return new Promise((resolve) => {
+            const observer = new MutationObserver(() => {
+                const el = baseQuery.querySelector(selector);
+                if (el) {
+                    observer.disconnect();
+                    resolve(el);
+                }
+            });
 
-	function watchMainContent(container) {
-		const observer = new MutationObserver((mutations) => {
-			mutations.forEach(({ addedNodes }) => {
-				addedNodes.forEach((node) => {
-					if (
-						node.nodeType === 1 &&
-						node.matches("ytd-rich-section-renderer")
-					) {
-						const ref = node.querySelector("#menu-container");
-						const isShorts =
-							node.querySelector("[is-shorts]") !== null;
+            observer.observe(baseQuery, { childList: true, subtree: true });
+        });
+    }
 
-						createControlDiv(
-							ref,
-							isShorts ? "shorts" : "news",
-							true
-						);
-					}
-				});
-			});
-		});
-		observer.observe(container, { childList: true, subtree: true });
-	}
+    function watchMainContent(container) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach(({ addedNodes }) => {
+                for (let node of addedNodes) {
+                    if (node.nodeType === 1 && node.matches('ytd-rich-section-renderer')) {
+                        const ref = node.querySelector('#menu-container');
+                        const hasControlDiv = node.querySelector('.itemPerRowControl') !== null;
+                        const isShorts = node.querySelector('[is-shorts]') !== null;
 
-	function createControlDiv(target, type, insertBefore = false) {
-		const controlDiv = document.createElement("div");
-		controlDiv.classList.add(
-			"style-scope",
-			"ytd-rich-grid-renderer",
-			"itemPerRowControl"
-		);
+                        if (hasControlDiv) continue; // Skip if already exists
 
-		["-", "+"].forEach((symbol) => {
-			const btn = document.createElement("button");
-			btn.innerText = symbol;
-			btn.addEventListener("click", () => {
-				if (symbol === "+") {
-					currentCounts[type]++;
-					console.log(currentCounts[type]);
-				} else if (currentCounts[type] > 1) {
-					currentCounts[type]--;
-				}
-				updateAndSave();
-			});
-			controlDiv.appendChild(btn);
-		});
+                        createControlDiv(ref, isShorts ? 'shorts' : 'news', true);
+                    }
+                }
+            });
+        });
 
-		if (insertBefore) target.parentNode.insertBefore(controlDiv, target);
-		else target.appendChild(controlDiv);
-		if (!insertBefore) controlDiv.classList.add("justify-left-custom");
-	}
+        observer.observe(container, { childList: true, subtree: true });
+    }
 
-	function init(queryStartLocation) {
-		applyCounts();
+    function createControlDiv(target, type, insertBefore = false) {
+        const controlDiv = document.createElement('div');
+        controlDiv.classList.add('style-scope', 'ytd-rich-grid-renderer', 'itemPerRowControl');
 
-		if (hideControls) {
-			return;
-		}
+        ['-', '+'].forEach((symbol) => {
+            const btn = document.createElement('button');
+            btn.innerText = symbol;
+            btn.addEventListener('click', () => {
+                if (symbol === '+') {
+                    currentSettingValues[type]++;
+                    console.log(currentSettingValues[type]);
+                } else if (currentSettingValues[type] > 1) {
+                    currentSettingValues[type]--;
+                }
+                updateAndSave();
+            });
+            controlDiv.appendChild(btn);
+        });
 
-		if (embedInChips) {
-			waitForElement(queryStartLocation, "#chips-wrapper").then((el) =>
-				createControlDiv(el, "content")
-			);
-		} else {
-			waitForElement(
-				queryStartLocation,
-				"#contents.ytd-rich-grid-renderer"
-			).then((el) => createControlDiv(el, "content", true));
-		}
+        if (insertBefore) target.parentNode.insertBefore(controlDiv, target);
+        else target.appendChild(controlDiv);
+        if (!insertBefore) controlDiv.classList.add('justify-left-custom');
+    }
 
-		// Start watching for newly loaded sections
-		waitForElement(
-			queryStartLocation,
-			"#contents.ytd-rich-grid-renderer"
-		).then(watchMainContent);
+    function init(queryStartLocation) {
+        updatePageLayout();
 
-		// Cleanup after init
-		window.removeEventListener(
-			"yt-navigate-finish",
-			handlePageContentChanged
-		);
-	}
+        if (hideControls) return;
 
-	// Workaround when reloaded on creator's home page and going back to main page will hide the buttons
-	let firstLoad = true;
-	function handlePageContentChanged() {
-		if (location.href.endsWith("youtube.com/")) {
-			let browseElements = document.querySelectorAll("ytd-browse");
+        if (embedInChips) {
+            waitForElement(queryStartLocation, '#chips-wrapper').then((el) => createControlDiv(el, 'content'));
+        } else {
+            waitForElement(queryStartLocation, '#contents.ytd-rich-grid-renderer').then((el) => createControlDiv(el, 'content', true));
+        }
 
-			if (firstLoad) {
-				init(browseElements[0]);
-			} else {
-				// If reloaded on creator's home page, second ytd-browse will be the main page
-				init(browseElements[1]);
-			}
-		}
-		firstLoad = false;
-	}
+        // Start watching for newly loaded sections
+        waitForElement(queryStartLocation, '#contents.ytd-rich-grid-renderer').then(watchMainContent);
 
-	// ----------------------------------- Main Execution -----------------------------------
+        // Cleanup after init
+        window.removeEventListener('yt-navigate-finish', handlePageContentChanged);
+    }
 
-	window.addEventListener("yt-navigate-finish", handlePageContentChanged);
+    // Workaround when reloaded on creator's home page and going back to main page will hide the buttons
+    let firstLoad = true;
+    function handlePageContentChanged() {
+        if (location.href.endsWith('youtube.com/')) {
+            let browseElements = document.querySelectorAll('ytd-browse');
+
+            if (firstLoad || browseElements.length <= 1) {
+                init(browseElements[0]);
+            } else {
+                // If reloaded on creator's home page, second ytd-browse will be the main page
+                init(browseElements[1]);
+            }
+        }
+        firstLoad = false;
+    }
+
+    // ----------------------------------- Main Execution -----------------------------------
+
+    window.addEventListener('yt-navigate-finish', handlePageContentChanged);
 })();
