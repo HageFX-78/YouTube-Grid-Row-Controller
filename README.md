@@ -4,6 +4,7 @@
 
 ## Changelog
 
+-   v0.5 - Fixed minor bug where shorts control is not working
 -   v0.4 - Fixed bug when reloading in video page and returning causing buttons to be hidden | Fixed duplicated controls under certain conditions
 -   v0.3 - Fixed bug where reloading in creator page and returning to home will hide the buttons [ [01e3022
     ](https://github.com/HageFX-78/YouTube-Grid-Row-Controller/commit/01e3022082944e5b8f4d21befee94f936a89cc56) ]

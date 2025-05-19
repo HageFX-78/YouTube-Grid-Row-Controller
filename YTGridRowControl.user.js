@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
 // @namespace    https://github.com/HageFX-78
-// @version      0.4
+// @version      0.5
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
 // @license      MIT
@@ -115,11 +115,12 @@
 			ytd-rich-grid-renderer {
 				--ytd-rich-grid-items-per-row: ${hideControls ? defaultSettingValue.content : currentSettingValues.content} !important;
 			}
-			ytd-rich-shelf-renderer {
+			ytd-rich-shelf-renderer:not([is-shorts]) {
 				--ytd-rich-grid-items-per-row: ${hideControls ? defaultSettingValue.news : currentSettingValues.news} !important;
 			}
 			ytd-rich-shelf-renderer[is-shorts] {
 				--ytd-rich-grid-slim-items-per-row: ${hideControls ? defaultSettingValue.shorts : currentSettingValues.shorts} !important;
+                --ytd-rich-grid-items-per-row: ${hideControls ? defaultSettingValue.shorts : currentSettingValues.shorts} !important;
 			}
 		`;
     }
