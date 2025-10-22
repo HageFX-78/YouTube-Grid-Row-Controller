@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
 // @namespace    https://github.com/HageFX-78
-// @version      0.5
+// @version      0.6
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
 // @license      MIT
@@ -44,14 +44,13 @@
     };
 
     style(`
-		${
-            hideControls
-                ? ''
-                : '#right-arrow {right: 10% !important;} #chips-wrapper {justify-content: left !important;}#chips-content{width: 90% !important;}'
-        }
+		${hideControls ? '' : '#chips-content{width: 92% !important;}'}
 
 		.justify-left-custom {
 			justify-content: left !important;
+		}
+        .justify-center-custom {
+			justify-content: center !important;
 		}
 
         ytd-rich-item-renderer[rendered-from-rich-grid][is-in-first-column] {
@@ -74,16 +73,25 @@
 			padding-bottom: 0 !important;
 			border-bottom: none !important;
 		}
+            
+        #selected-chip-content{
+            width: 0% !important;
+        }
+
+        ytd-feed-filter-chip-bar-renderer[frosted-glass-mode=with-chipbar] #chips-wrapper.ytd-feed-filter-chip-bar-renderer {
+            flex-direction: row;
+        }
 		.itemPerRowControl {
             display: flex;
             justify-content: right;
             align-items: center;
 
+            z-index: 2025;
             flex: 1;         
             gap: 10px;
             box-sizing: border-box;
             user-select: none;
-			${embedInChips ? '' : 'width: 100%;'};
+			${embedInChips ? 'width: 8%;' : ''};
         }
 
         .itemPerRowControl button {
@@ -95,7 +103,6 @@
             
             text-align: center;
             display: inline-block;
-
 
             height: 30px;
             aspect-ratio: 1/1;
@@ -191,7 +198,8 @@
 
         if (insertBefore) target.parentNode.insertBefore(controlDiv, target);
         else target.appendChild(controlDiv);
-        if (!insertBefore) controlDiv.classList.add('justify-left-custom');
+
+        if (type == 'content') controlDiv.classList.add('justify-left-custom');
     }
 
     function init(queryStartLocation) {
@@ -199,11 +207,7 @@
 
         if (hideControls) return;
 
-        if (embedInChips) {
-            waitForElement(queryStartLocation, '#chips-wrapper').then((el) => createControlDiv(el, 'content'));
-        } else {
-            waitForElement(queryStartLocation, '#contents.ytd-rich-grid-renderer').then((el) => createControlDiv(el, 'content', true));
-        }
+        waitForElement(queryStartLocation, '#chips-wrapper').then((el) => createControlDiv(el, 'content'));
 
         // Start watching for newly loaded sections
         waitForElement(queryStartLocation, '#contents.ytd-rich-grid-renderer').then(watchMainContent);
