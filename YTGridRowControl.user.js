@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
-// @namespace    https://github.com/HageFX-78/YouTube-Grid-Row-Controller
+// @namespace    https://github.com/HageFX-78
 // @version      1.0
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
