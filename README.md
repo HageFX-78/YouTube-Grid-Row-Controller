@@ -4,6 +4,14 @@
 
 ## Changelog
 
+-   v1.0
+
+    -   Complete rewrite for better element detection
+    -   Fix script not working after reloading in subscription page
+    -   Added settings menu
+    -   Removed embedInChips toggle
+
+-   v0.6 - Fixed chips control css after UI update
 -   v0.5 - Fixed minor bug where shorts control is not working
 -   v0.4 - Fixed bug when reloading in video page and returning causing buttons to be hidden | Fixed duplicated controls under certain conditions
 -   v0.3 - Fixed bug where reloading in creator page and returning to home will hide the buttons [ [01e3022
@@ -23,7 +31,7 @@ You can also find it on GreasyFork [click me](https://greasyfork.org/en/scripts/
 Install a userscript manager such as:
 
 -   [Tampermonkey](https://www.tampermonkey.net/) (Chrome Extension)
--   [ViolentMonkey](https://violentmonkey.github.io/) (Alternative option)
+-   [ViolentMonkey](https://violentmonkey.github.io/) (The better option)
 
 ### 🔹 Step 2: Turn on Developer Mode (Important!)
 

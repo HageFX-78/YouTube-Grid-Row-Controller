@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Grid Row Controller
-// @namespace    https://github.com/HageFX-78
-// @version      0.6
+// @namespace    https://github.com/HageFX-78/YouTube-Grid-Row-Controller
+// @version      1.0
 // @description  Adds simple buttons to control items per row on Youtube's home feed, works for shorts and news sections too. Buttons can be hidden if needed.
 // @author       HageFX78
 // @license      MIT
@@ -11,16 +11,16 @@
 // @updateURL    https://github.com/HageFX-78/YouTube-Grid-Row-Controller/raw/refs/heads/main/YTGridRowControl.user.js
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
     'use strict';
 
     // Configurable options
-    const embedInChips = true; // Only applies to the one that is attached to the categories bar, set false if you have another script that removes the bar
-    const hideControls = false; // set true to hide UI controls, it will use the default values instead
+    const hideControls = GM_getValue('hideControls', false); // set true to hide UI controls, it will use the default values instead
 
-    const transparentButtons = false; // set true to make the buttons transparent and less intrusive, only applies if hideControls is false
+    const transparentButtons = GM_getValue('transparentButtons', false); // set true to make the buttons transparent and less intrusive, only applies if hideControls is false
 
     const defaultSettingValue = {
         // Default values mainly used when if you want to hide the buttons, change the values to your liking
@@ -43,31 +43,20 @@
         return el;
     };
 
+    // Some of it maybe irrelevant after so long, will cleanup someday...
     style(`
 		${hideControls ? '' : '#chips-content{width: 92% !important;}'}
 
-		.justify-left-custom {
-			justify-content: left !important;
-		}
-        .justify-center-custom {
-			justify-content: center !important;
-		}
+		.justify-left-custom { justify-content: left !important; }
+        .justify-center-custom { justify-content: center !important; }
 
-        ytd-rich-item-renderer[rendered-from-rich-grid][is-in-first-column] {
-            margin-left: calc(var(--ytd-rich-grid-item-margin) / 2) !important;
-        }
+        ytd-rich-item-renderer[rendered-from-rich-grid][is-in-first-column] { margin-left: calc(var(--ytd-rich-grid-item-margin) / 2) !important; }
 		
-		ytd-rich-item-renderer[hidden][is-responsive-grid], [is-slim-media]{
-			display: block !important;
-		}
+		ytd-rich-item-renderer[hidden][is-responsive-grid], [is-slim-media]{ display: block !important; }
 
-		ytd-rich-item-renderer{
-			margin-bottom: var(--ytd-rich-grid-row-margin) !important;
-		}
+		ytd-rich-item-renderer{ margin-bottom: var(--ytd-rich-grid-row-margin) !important; }
 
-		.button-container.ytd-rich-shelf-renderer {
-			display: none !important;
-		}
+		.button-container.ytd-rich-shelf-renderer { display: none !important;  }
 		
 		#dismissible.ytd-rich-shelf-renderer {
 			padding-bottom: 0 !important;
@@ -76,6 +65,10 @@
             
         #selected-chip-content{
             width: 0% !important;
+        }
+
+        #spacer.ytd-shelf-renderer {
+            flex: 9 !important; /* Spacing gets weird in subscription feed page */
         }
 
         ytd-feed-filter-chip-bar-renderer[frosted-glass-mode=with-chipbar] #chips-wrapper.ytd-feed-filter-chip-bar-renderer {
@@ -91,7 +84,7 @@
             gap: 10px;
             box-sizing: border-box;
             user-select: none;
-			${embedInChips ? 'width: 8%;' : ''};
+			width: 8%;
         }
 
         .itemPerRowControl button {
@@ -143,96 +136,141 @@
         saveValues();
     }
 
-    function waitForElement(baseQuery, selector) {
-        return new Promise((resolve) => {
-            const observer = new MutationObserver(() => {
-                const el = baseQuery.querySelector(selector);
-                if (el) {
-                    observer.disconnect();
-                    resolve(el);
-                }
-            });
-
-            observer.observe(baseQuery, { childList: true, subtree: true });
-        });
+    function isCreatorPage() {
+        return location.pathname.startsWith('/@');
     }
 
-    function watchMainContent(container) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach(({ addedNodes }) => {
-                for (let node of addedNodes) {
-                    if (node.nodeType === 1 && node.matches('ytd-rich-section-renderer')) {
-                        const ref = node.querySelector('#menu-container');
-                        const hasControlDiv = node.querySelector('.itemPerRowControl') !== null;
-                        const isShorts = node.querySelector('[is-shorts]') !== null;
+    function initGlobalWatcher() {
+        const targets = [
+            {
+                selector: '#chips-wrapper',
+                type: 'content',
+                place: (anchor, control) => anchor.appendChild(control),
+            },
+            {
+                selector: 'ytd-rich-section-renderer #menu-container',
+                type: (node) => (node.closest('ytd-rich-section-renderer')?.querySelector('[is-shorts]') ? 'shorts' : 'news'),
+                place: (anchor, control) => anchor.parentNode.insertBefore(control, anchor),
+            },
+            {
+                selector: 'ytd-shelf-renderer #title-container.style-scope.ytd-shelf-renderer',
+                type: 'content',
+                place: (anchor, control) => anchor.appendChild(control),
+            },
+        ];
 
-                        if (hasControlDiv) continue; // Skip if already exists
+        scanExistingAnchors(targets); // Some elements load before observer can be hooked, like the #chips
 
-                        createControlDiv(ref, isShorts ? 'shorts' : 'news', true);
+        const observer = new MutationObserver((muts) => {
+            for (const m of muts) {
+                for (const node of m.addedNodes) {
+                    if (node.nodeType !== 1) continue;
+
+                    for (const t of targets) {
+                        const anchor = node.matches(t.selector) ? node : node.querySelector?.(t.selector);
+
+                        if (anchor) tryAttachControl(anchor, t);
                     }
                 }
-            });
+            }
         });
 
-        observer.observe(container, { childList: true, subtree: true });
+        observer.observe(document.documentElement, { subtree: true, childList: true });
     }
 
-    function createControlDiv(target, type, insertBefore = false) {
+    function tryAttachControl(anchor, t) {
+        if (!anchor) return;
+        if (isCreatorPage()) return;
+
+        // Prevent duplicates
+        if (anchor.parentNode?.querySelector?.('.itemPerRowControl')) return;
+
+        const type = typeof t.type === 'function' ? t.type(anchor) : t.type;
+        const control = createControlDivRaw(type);
+
+        // CENTER for #chips-wrapper and the shelf title container
+        if (t.selector === '#chips-wrapper') {
+            control.classList.add('justify-left-custom');
+        } else if (t.selector.startsWith('ytd-shelf-renderer')) {
+            control.classList.add('justify-center-custom');
+        }
+
+        t.place(anchor, control);
+    }
+
+    function createControlDivRaw(type) {
         const controlDiv = document.createElement('div');
         controlDiv.classList.add('style-scope', 'ytd-rich-grid-renderer', 'itemPerRowControl');
 
         ['-', '+'].forEach((symbol) => {
             const btn = document.createElement('button');
-            btn.innerText = symbol;
+            btn.textContent = symbol;
+
             btn.addEventListener('click', () => {
-                if (symbol === '+') {
-                    currentSettingValues[type]++;
-                    console.log(currentSettingValues[type]);
-                } else if (currentSettingValues[type] > 1) {
-                    currentSettingValues[type]--;
-                }
+                if (symbol === '+') currentSettingValues[type]++;
+                else if (currentSettingValues[type] > 1) currentSettingValues[type]--;
+
                 updateAndSave();
             });
+
             controlDiv.appendChild(btn);
         });
 
-        if (insertBefore) target.parentNode.insertBefore(controlDiv, target);
-        else target.appendChild(controlDiv);
-
-        if (type == 'content') controlDiv.classList.add('justify-left-custom');
+        return controlDiv;
     }
 
-    function init(queryStartLocation) {
-        updatePageLayout();
-
-        if (hideControls) return;
-
-        waitForElement(queryStartLocation, '#chips-wrapper').then((el) => createControlDiv(el, 'content'));
-
-        // Start watching for newly loaded sections
-        waitForElement(queryStartLocation, '#contents.ytd-rich-grid-renderer').then(watchMainContent);
-
-        // Cleanup after init
-        window.removeEventListener('yt-navigate-finish', handlePageContentChanged);
-    }
-
-    // Workaround when reloaded on creator's home page and going back to main page will hide the buttons
-    let firstLoad = true;
-    function handlePageContentChanged() {
-        if (location.href.endsWith('youtube.com/')) {
-            let browseElements = document.querySelectorAll('ytd-browse');
-
-            if (firstLoad || browseElements.length <= 1) {
-                init(browseElements[0]);
-            } else {
-                // If reloaded on creator's home page, second ytd-browse will be the main page
-                init(browseElements[1]);
-            }
+    function scanExistingAnchors(targets) {
+        for (const t of targets) {
+            document.querySelectorAll(t.selector).forEach((anchor) => {
+                tryAttachControl(anchor, t);
+            });
         }
-        firstLoad = false;
+    }
+
+    function setupGMMenu() {
+        function rebuildButtonStyles(newVal) {
+            document.querySelectorAll('.itemPerRowControl button').forEach((btn) => {
+                btn.style.backgroundColor = newVal ? 'transparent' : 'var(--yt-spec-badge-chip-background)';
+            });
+        }
+
+        function applyHideControls(newVal) {
+            const controls = document.querySelectorAll('.itemPerRowControl');
+            controls.forEach((c) => {
+                c.style.display = newVal ? 'none' : 'flex';
+            });
+
+            // force layout update
+            updatePageLayout();
+        }
+
+        if (typeof GM_registerMenuCommand === 'function') {
+            GM_registerMenuCommand(`Reset Values`, () => {
+                GM_setValue('itemPerRow', defaultSettingValue.content);
+                GM_setValue('newsPerRow', defaultSettingValue.news);
+                GM_setValue('shortsPerRow', defaultSettingValue.shorts);
+
+                currentSettingValues = { ...defaultSettingValue };
+                updatePageLayout();
+            });
+
+            GM_registerMenuCommand(`Toggle hideControls [ ${hideControls} ]`, () => {
+                let newVal = !GM_getValue('hideControls', false);
+                GM_setValue('hideControls', newVal);
+                applyHideControls(newVal);
+            });
+
+            GM_registerMenuCommand(`Toggle transparentButtons [ ${transparentButtons} ]`, () => {
+                let newVal = !GM_getValue('transparentButtons', false);
+                GM_setValue('transparentButtons', newVal);
+                rebuildButtonStyles(newVal);
+            });
+        }
     }
 
     // ----------------------------------- Main Execution -----------------------------------
+    setupGMMenu();
+    updatePageLayout();
 
-    window.addEventListener('yt-navigate-finish', handlePageContentChanged);
+    if (!hideControls) initGlobalWatcher();
 })();
